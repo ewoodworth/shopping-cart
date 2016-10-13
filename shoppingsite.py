@@ -9,6 +9,7 @@ Authors: Joel Burton, Christian Fernandez, Meggie Mahnken, Katie Byers.
 
 from flask import Flask, render_template, redirect, flash, session
 import jinja2
+from flask_debugtoolbar import DebugToolbarExtension
 
 import melons
 
@@ -60,29 +61,22 @@ def show_melon(melon_id):
 def show_shopping_cart():
     """Display content of shopping cart."""
 
-
-    session["total_cost"] = 0
-
-
-    for key in session["cart"].keys():
-        try:
-            session["purchases"]
-        except NameError: 
-            session["purchases"].append(key)
-
     for key, value in melons.melon_types.items():
-        if key in session["purchases"]:
-            order_price = session["cart"][key] * float(melons.melon_types[key].price)
-            try:
-                session["total_cost"] 
-            except NameError:
+        if key in session["cart"]:
+            if "bulk_type_cost" in session:
+                session["bulk_type_cost"] += session["cart"][key] * melons.melon_types[key].price
+            else:
+                session["bulk_type_cost"] = 0
+                session["bulk_type_cost"] += session["cart"][key] * melons.melon_types[key].price
+            if "total_cost" in session:
+                session[total_cost] += session["bulk_type_cost"]
+            else:
                 session["total_cost"] = 0
-            session["total_cost"] += order_price
-            melons.melon_types[key].quantity = session["cart"][key] 
-            melons.melon_types[key].total_cost = order_price
-            session["purchases"].append(melons.melon_types[key])
+                session["total_cost"] += session["bulk_type_cost"]
+            melons.melon_types[key].quantity = session["cart"][key]
+            melons.melon_types[key].total_cost = session["bulk_type_cost"]
 
-    return render_template("cart.html", purchases=session["purchases"], total_cost=session["total_cost"])
+    return render_template("cart.html", total_cost=session["total_cost"])
 
 
 @app.route("/add_to_cart/<melon_id>")
@@ -93,11 +87,10 @@ def add_to_cart(melon_id):
     page and display a confirmation message: 'Melon successfully added to
     cart'."""
 
-    try:
-        cart
-    except (UnboundLocalError, NameError):
-        session["cart"] = {}
-    session["cart"].get(melon_id, 0) + 1
+    if "cart" in session:
+        session["cart"][melon_id] = session["cart"].get(melon_id, 0) + 1
+    else:
+        session["cart"] = {melon_id: 1}
     flash("Success! Cart updated.")
 
 
@@ -148,4 +141,6 @@ def checkout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.debug=True
+    DebugToolbarExtension(app)
+    app.run()
