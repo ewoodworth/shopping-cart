@@ -64,17 +64,28 @@ def show_shopping_cart():
     for key, value in melons.melon_types.items():
         if key in session["cart"]:
             if "bulk_type_cost" in session:
-                session["bulk_type_cost"] += session["cart"][key] * melons.melon_types[key].price
+                if key in session["bulk_type_cost"]:
+                    pass
+                else:
+                    session["bulk_type_cost"][key] += session["cart"][key] * melons.melon_types[key].price
             else:
-                session["bulk_type_cost"] = 0
-                session["bulk_type_cost"] += session["cart"][key] * melons.melon_types[key].price
-            if "total_cost" in session:
-                session[total_cost] += session["bulk_type_cost"]
-            else:
-                session["total_cost"] = 0
-                session["total_cost"] += session["bulk_type_cost"]
+                session["bulk_type_cost"] = {key: 0}
+                session["bulk_type_cost"][key] += session["cart"][key] * melons.melon_types[key].price
             melons.melon_types[key].quantity = session["cart"][key]
-            melons.melon_types[key].total_cost = session["bulk_type_cost"]
+        melons.melon_types[key].total_cost = session["bulk_type_cost"]
+
+    total_cost = 0
+    for key in session["cart"]:
+        total_cost += session["bulk_type_cost"][key]
+    
+    # if "total_cost" in session:
+    #     if key in session["total_cost"]:
+    #         pass
+    #     else:
+    #         session["total_cost"] += session["bulk_type_cost"][key]
+    # else:
+    #     session["total_cost"] = {key: 0}
+    #     session["total_cost"][key] = session["bulk_type_cost"][key]
 
     return render_template("cart.html", total_cost=session["total_cost"])
 
