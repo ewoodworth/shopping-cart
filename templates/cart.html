@@ -3,7 +3,12 @@
 
 {% block body %}
 
-    <table class="table table-striped">
+        {{session["purchases"]}}
+
+        My {{purchases}}
+        My {{total_cost}}
+
+   <!--  <table class="table table-striped">
         <thead>
         <tr>
             <th>Melon Name</th>
@@ -39,7 +44,7 @@
         </tr>
         </tbody>
     </table>
-
+ -->
     <h3>Total: $27.00</h3>
 
     <a href="/checkout" class="btn btn-large btn-primary">Check Out</a>
